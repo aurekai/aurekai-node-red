@@ -6,7 +6,7 @@
 
 Aurekai integration surface for Node Red.
 
-Status: planned
+Status: active
 Type: workflow
 
 ## Core Template Set
