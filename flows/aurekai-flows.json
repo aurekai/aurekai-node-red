@@ -1,0 +1,39 @@
+[
+  {
+    "id": "tel-to-transcript",
+    "label": "AkaiTel → Transcript",
+    "type": "tab",
+    "nodes": [
+      { "id": "1", "type": "tcp in", "name": "FreeSWITCH Event Socket", "port": 8021, "wires": [["2"]] },
+      { "id": "2", "type": "function", "name": "Parse Tel Event", "func": "const evt = JSON.parse(msg.payload);\nmsg.audio_path = evt.audio_path || '/tmp/latest-call.wav';\nmsg.client_id = evt.client_id || '';\nreturn msg;", "wires": [["3"]] },
+      { "id": "3", "type": "exec", "name": "akai transcribe", "command": "akai transcribe audio --input", "addpay": true, "append": "--json", "wires": [["4"], [], []] },
+      { "id": "4", "type": "json", "name": "Parse JSON", "wires": [["5"]] },
+      { "id": "5", "type": "debug", "name": "Transcript Result", "wires": [] }
+    ]
+  },
+  {
+    "id": "pcap-to-wire-report",
+    "label": "PCAP → Wire Report",
+    "type": "tab",
+    "nodes": [
+      { "id": "10", "type": "http in", "name": "PCAP Upload", "url": "/pcap-upload", "method": "post", "wires": [["11"]] },
+      { "id": "11", "type": "exec", "name": "akai wire ingest-pcap", "command": "akai wire ingest-pcap --input", "addpay": true, "append": "--json", "wires": [["12"], [], []] },
+      { "id": "12", "type": "json", "name": "Parse Ingest", "wires": [["13"]] },
+      { "id": "13", "type": "exec", "name": "akai wire report", "command": "akai wire report --capture", "addpay": false, "append": "--json", "wires": [["14"], [], []] },
+      { "id": "14", "type": "http response", "name": "Send Report", "wires": [] }
+    ]
+  },
+  {
+    "id": "mqtt-to-akai-artifact",
+    "label": "MQTT Event → Akai Artifact",
+    "type": "tab",
+    "nodes": [
+      { "id": "20", "type": "mqtt in", "name": "Device Event", "topic": "aurekai/events/#", "wires": [["21"]] },
+      { "id": "21", "type": "function", "name": "Route by Event Type", "func": "if (msg.payload.type === 'audio') msg.cmd = ['transcribe','audio','--input',msg.payload.path];\nelse if (msg.payload.type === 'pcap') msg.cmd = ['wire','ingest-pcap','--input',msg.payload.path];\nelse msg.cmd = ['runtime','capabilities'];\nreturn msg;", "wires": [["22"]] },
+      { "id": "22", "type": "exec", "name": "akai dispatch", "command": "akai", "addpay": true, "append": "--json", "wires": [["23"], [], []] },
+      { "id": "23", "type": "json", "name": "Parse Result", "wires": [["24"]] },
+      { "id": "24", "type": "exec", "name": "akai proof bundle", "command": "akai proof bundle --json", "wires": [["25"], [], []] },
+      { "id": "25", "type": "debug", "name": "Proof URI", "wires": [] }
+    ]
+  }
+]

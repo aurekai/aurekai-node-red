@@ -1,0 +1,74 @@
+[
+  {
+    "id": "tab_aurekai",
+    "type": "tab",
+    "label": "Aurekai Pipeline",
+    "disabled": false
+  },
+  {
+    "id": "inject_doctor",
+    "type": "inject",
+    "z": "tab_aurekai",
+    "name": "Start",
+    "once": true,
+    "wires": [
+      [
+        "exec_doctor"
+      ]
+    ]
+  },
+  {
+    "id": "exec_doctor",
+    "type": "exec",
+    "z": "tab_aurekai",
+    "name": "doctor-deep",
+    "command": "akai doctor --deep --json",
+    "wires": [
+      [
+        "debug_doctor"
+      ],
+      [],
+      []
+    ]
+  },
+  {
+    "id": "debug_doctor",
+    "type": "debug",
+    "z": "tab_aurekai",
+    "name": "Output",
+    "wires": []
+  },
+  {
+    "id": "inject_release",
+    "type": "inject",
+    "z": "tab_aurekai",
+    "name": "Release Gate",
+    "once": false,
+    "wires": [
+      [
+        "exec_release"
+      ]
+    ]
+  },
+  {
+    "id": "exec_release",
+    "type": "exec",
+    "z": "tab_aurekai",
+    "name": "release-gate",
+    "command": "akai release gate --version 0.8.0-alpha.4 --json",
+    "wires": [
+      [
+        "debug_release"
+      ],
+      [],
+      []
+    ]
+  },
+  {
+    "id": "debug_release",
+    "type": "debug",
+    "z": "tab_aurekai",
+    "name": "Output",
+    "wires": []
+  }
+]
